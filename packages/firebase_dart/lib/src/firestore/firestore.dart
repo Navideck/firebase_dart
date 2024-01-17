@@ -10,6 +10,10 @@ abstract class FirebaseFirestore {
   /// The [FirebaseApp] for this current [FirebaseFirestore] instance.
   FirebaseApp get app;
 
+  /// Returns an instance using the default [FirebaseApp].
+  static final FirebaseFirestore instance =
+      FirebaseFirestore.instanceFor(app: Firebase.app());
+
   /// Gets a [CollectionReference] for the specified Firestore path.
   CollectionReference<Map<String, dynamic>> collection(String collectionPath);
 }

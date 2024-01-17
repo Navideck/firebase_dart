@@ -88,9 +88,13 @@ class CollectionReferenceImpl
   FirebaseFirestore get firestore => _firestore;
 
   @override
-  Future<QuerySnapshot<Map<String, dynamic>>> get([GetOptions? options]) {
-    // TODO: implement get
-    throw UnimplementedError();
+  Future<QuerySnapshot<Map<String, dynamic>>> get([GetOptions? options]) async {
+    var documents =
+        await _firestore.client.api.projects.databases.documents.listDocuments(
+      'projects/${firestore.app.options.projectId}/databases/(default)/documents',
+      _path,
+    );
+    return QuerySnapshotImpl(this, documents);
   }
 
   @override
@@ -208,15 +212,14 @@ class DocumentReferenceImpl extends DocumentReference<Map<String, dynamic>> {
   @override
   Future<DocumentSnapshot<Map<String, dynamic>>> get(
       [GetOptions? options]) async {
-    if (options?.source == Source.cache) {
-      // TODO: implement cache
-      var doc = await firestore.client.getDocumentFromLocalCache(_path);
-      return DocumentSnapshotImpl(this, doc);
-    } else {
-      var doc = await firestore.client.api.projects.databases.documents.get(
-          'projects/${firestore.app.options.projectId}/databases/(default)/documents/${_collection._path}/$_path');
-      return DocumentSnapshotImpl(this, doc);
-    }
+    // if (options?.source == Source.cache) {
+    //   var doc = await firestore.client.getDocumentFromLocalCache(_path);
+    //   return DocumentSnapshotImpl(this, doc);
+    // } else {
+    var doc = await firestore.client.api.projects.databases.documents.get(
+        'projects/${firestore.app.options.projectId}/databases/(default)/documents/${_collection._path}/$_path');
+    return DocumentSnapshotImpl(this, doc);
+    // }
   }
 
   @override
@@ -306,5 +309,81 @@ class DocumentSnapshotImpl extends DocumentSnapshot<Map<String, dynamic>> {
 
   @override
   // TODO: implement metadata
+  SnapshotMetadata get metadata => throw UnimplementedError();
+}
+
+class QuerySnapshotImpl extends QuerySnapshot<Map<String, dynamic>> {
+  final CollectionReferenceImpl reference;
+  final ListDocumentsResponse _listDocumentsResponse;
+
+  QuerySnapshotImpl(this.reference, this._listDocumentsResponse);
+
+  @override
+  List<DocumentChange<Map<String, dynamic>>> get docChanges {
+    // TODO: implement docChanges
+    throw UnimplementedError();
+  }
+
+  @override
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> get docs {
+    if (_listDocumentsResponse.documents == null) return [];
+    return _listDocumentsResponse.documents!
+        .map((document) => QueryDocumentSnapshotImpl(
+            DocumentReferenceImpl(reference, document.name), document))
+        .toList();
+  }
+
+  @override
+  SnapshotMetadata get metadata => throw UnimplementedError();
+
+  @override
+  int get size => _listDocumentsResponse.documents?.length ?? 0;
+}
+
+class QueryDocumentSnapshotImpl
+    extends QueryDocumentSnapshot<Map<String, dynamic>> {
+  @override
+  final DocumentReferenceImpl reference;
+  final Document _document;
+
+  QueryDocumentSnapshotImpl(this.reference, this._document);
+
+  @override
+  dynamic operator [](Object field) {
+    if (!exists) return null;
+    var f = _document.fields![field];
+
+    if (f == null) return null;
+
+    return f.stringValue ??
+        f.booleanValue ??
+        f.integerValue ??
+        f.doubleValue ??
+        f.arrayValue ??
+        (f.bytesValue == null ? null : f.bytesValueAsBytes) ??
+        f.geoPointValue ??
+        f.timestampValue ??
+        f.referenceValue ??
+        f.mapValue;
+  }
+
+  @override
+  Map<String, dynamic> data() {
+    if (!exists) return {};
+    return {for (var k in _document.fields!.keys) k: this[k]};
+  }
+
+  @override
+  bool get exists => _document.createTime != null;
+
+  @override
+  dynamic get(Object field) {
+    return this[field];
+  }
+
+  @override
+  String get id => throw UnimplementedError();
+
+  @override
   SnapshotMetadata get metadata => throw UnimplementedError();
 }

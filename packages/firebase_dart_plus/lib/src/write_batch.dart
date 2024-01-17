@@ -6,7 +6,6 @@ import 'package:firebase_dart/src/database/impl/view.dart';
 import 'package:firebase_dart/src/database/impl/tree.dart';
 import 'package:firebase_dart/src/database/impl/operations/tree.dart';
 import 'package:firebase_dart/src/database/impl/firebase_impl.dart';
-import 'package:firebase_dart/src/database/impl/events/value.dart';
 import 'package:firebase_dart/src/implementation/isolate/database.dart';
 import 'package:rxdart/rxdart.dart';
 

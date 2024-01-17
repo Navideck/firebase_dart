@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:io' as io;
 
 import 'package:firebase_dart/implementation/pure_dart.dart';
 import 'package:firebase_dart/core.dart';
